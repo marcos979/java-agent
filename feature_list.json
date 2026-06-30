@@ -1,0 +1,334 @@
+{
+  "features": [
+    {
+      "id": "F001.1",
+      "name": "Domain Models for Agent State",
+      "status": "pending",
+      "description": "Create the foundational data structures to hold the state of a single agent execution. Create AgentContext (traceId, sessionId, messageHistory, toolCalls) and ExecutionResult (success, finalAnswer, errorCause) in the agent.state package.",
+      "acceptance": [
+        "AgentContext class exists with required fields and standard getters/setters.",
+        "ExecutionResult is a Java record with static factory methods success() and failure().",
+        "Classes are located in the agent.state package with clear JavaDoc."
+      ]
+    },
+    {
+      "id": "F001.2",
+      "name": "Basic LLM Integration (Text Only)",
+      "status": "pending",
+      "description": "Implement the basic LLM interaction in ReActAgent.java without tools. Inject ChatClient, create an execute method that takes a prompt and AgentContext, calls the LLM, and returns an ExecutionResult.",
+      "acceptance": [
+        "ReActAgent is a Spring @Service that successfully calls the LLM.",
+        "The execute method wraps the LLM response in ExecutionResult.success().",
+        "Exceptions are caught and wrapped in ExecutionResult.failure().",
+        "Basic SLF4J logging is added for start and end of execution."
+      ]
+    },
+    {
+      "id": "F001.3",
+      "name": "ReAct Loop Implementation",
+      "status": "pending",
+      "description": "Upgrade ReActAgent.java to implement the actual ReAct (Reason + Act) while-loop. Add a MAX_ITERATIONS safeguard. Check for tool calls in the response; if present, mock the execution and loop; if absent, return the final text.",
+      "acceptance": [
+        "The execute method uses a while-loop with a hard limit of 5 iterations.",
+        "Exceeding max iterations returns ExecutionResult.failure with a TimeoutException.",
+        "The loop correctly identifies tool calls vs final text answers using Spring AI classes.",
+        "Mock tool observations are added to the context message history."
+      ]
+    },
+    {
+      "id": "F001.4",
+      "name": "Agent Orchestrator Routing",
+      "status": "pending",
+      "description": "Create the AgentOrchestrator in agent.core to act as the entry point. It should initialize the AgentContext (generating traceId and sessionId) and route the request to the ReActAgent.",
+      "acceptance": [
+        "AgentOrchestrator is a Spring @Service.",
+        "It generates a UUID for traceId and sessionId if not provided.",
+        "It initializes the AgentContext and passes it to ReActAgent.",
+        "It returns the final ExecutionResult to the caller."
+      ]
+    },
+    {
+      "id": "F002.1",
+      "name": "WeatherTool Implementation",
+      "status": "pending",
+      "description": "Create the first functional tool. Implement WeatherTool in tools.implementations using Spring AI's @Tool annotation. It should accept a city string and return a mock weather condition.",
+      "acceptance": [
+        "WeatherTool is a Spring @Component.",
+        "The getWeather method is annotated with @Tool (or equivalent Spring AI annotation).",
+        "The method returns a formatted mock string (e.g., 'Weather in [city] is 22C').",
+        "SLF4J logging is included when the tool is invoked."
+      ]
+    },
+    {
+      "id": "F002.2",
+      "name": "Tool Metadata Registry",
+      "status": "pending",
+      "description": "Implement ToolMetadataRegistry in tools.registry to scan, register, and expose tool metadata. Ensure the tools are properly configured in the Spring AI ChatClient so the LLM knows they exist.",
+      "acceptance": [
+        "ToolMetadataRegistry identifies and registers all @Tool annotated beans.",
+        "The ChatClient in ReActAgent is configured with the registered tools.",
+        "Tool metadata (name, description, parameters) is correctly exposed to the LLM."
+      ]
+    },
+    {
+      "id": "F002.3",
+      "name": "Real Tool Execution in ReAct Loop",
+      "status": "pending",
+      "description": "Replace the mock tool execution in ReActAgent.java with actual Spring AI tool execution. Ensure the LLM's tool call arguments are passed to the WeatherTool and the real result is fed back to the LLM.",
+      "acceptance": [
+        "The ReAct loop invokes the actual WeatherTool bean instead of returning a mock string.",
+        "Tool arguments extracted from the LLM response are correctly passed to the tool.",
+        "The real tool output is added to the message history as an observation.",
+        "End-to-end test: Asking for weather results in the correct final answer."
+      ]
+    },
+    {
+      "id": "F003.1",
+      "name": "Synchronous REST API & DTOs",
+      "status": "pending",
+      "description": "Create the synchronous REST endpoint. Define ChatRequest and ChatResponse DTOs in api.dto. Implement POST /api/agent/chat in AgentController that calls the AgentOrchestrator.",
+      "acceptance": [
+        "ChatRequest and ChatResponse are Java records in the api.dto package.",
+        "AgentController exposes POST /api/agent/chat.",
+        "The controller extracts the prompt, calls AgentOrchestrator, and maps the result to ChatResponse.",
+        "Global exception handling maps Agent exceptions to proper HTTP status codes."
+      ]
+    },
+    {
+      "id": "F003.2",
+      "name": "SSE Streaming Endpoint (Basic)",
+      "status": "pending",
+      "description": "Create the streaming REST endpoint. Implement GET /api/agent/chat/stream in AgentStreamingController using Server-Sent Events (SseEmitter or Flux) to stream the final LLM response token-by-token.",
+      "acceptance": [
+        "AgentStreamingController exposes GET /api/agent/chat/stream.",
+        "The endpoint uses Spring AI's streaming ChatClient capabilities.",
+        "The response Content-Type is text/event-stream.",
+        "Tokens are streamed to the client in real-time as they are generated."
+      ]
+    },
+    {
+      "id": "F003.3",
+      "name": "SSE Event Structuring",
+      "status": "pending",
+      "description": "Upgrade the SSE endpoint to stream structured events, not just raw text. Differentiate between 'thought', 'tool_call', 'tool_result', and 'message' events using the SSE 'event:' field.",
+      "acceptance": [
+        "The stream emits named events (e.g., event: thought, event: tool_call).",
+        "Tool calls and results are streamed as distinct JSON events.",
+        "The final text answer is streamed as 'event: message'.",
+        "A final 'event: done' is sent to close the stream gracefully."
+      ]
+    },
+    {
+      "id": "F004.1",
+      "name": "ChatMemoryManager (In-Memory)",
+      "status": "pending",
+      "description": "Implement ChatMemoryManager in the memory package to handle short-term conversational history. Use an in-memory ConcurrentHashMap keyed by sessionId to store message lists.",
+      "acceptance": [
+        "ChatMemoryManager is a Spring @Service.",
+        "It provides methods to add messages and retrieve history by sessionId.",
+        "History is stored in memory using a thread-safe collection.",
+        "Unit tests verify messages are correctly stored and retrieved per session."
+      ]
+    },
+    {
+      "id": "F004.2",
+      "name": "Integrate Memory into ReAct Loop",
+      "status": "pending",
+      "description": "Modify AgentOrchestrator and ReActAgent to use ChatMemoryManager. Before calling the LLM, load the previous message history into the AgentContext. After execution, save the new messages.",
+      "acceptance": [
+        "AgentOrchestrator loads previous history from ChatMemoryManager before execution.",
+        "The ReAct loop includes the loaded history in the LLM prompt.",
+        "New user and assistant messages are saved to ChatMemoryManager after execution.",
+        "Multi-turn conversation test: The agent remembers previous context."
+      ]
+    },
+    {
+      "id": "F004.3",
+      "name": "Token Window Sliding",
+      "status": "pending",
+      "description": "Implement a configurable token limit in ChatMemoryManager. When retrieving history, truncate older messages if the total estimated token count exceeds the configured window size.",
+      "acceptance": [
+        "ChatMemoryManager accepts a maxTokens configuration property.",
+        "The retrieval method estimates token count (e.g., chars/4 or using a tokenizer).",
+        "Older messages are dropped from the returned list if the limit is exceeded.",
+        "The system prompt and current message are never truncated."
+      ]
+    },
+    {
+      "id": "F005.1",
+      "name": "VectorStoreManager Setup",
+      "status": "pending",
+      "description": "Set up VectorStoreManager in the memory package for long-term RAG. Configure a simple in-memory or local vector store (like SimpleVectorStore) via Spring AI configuration.",
+      "acceptance": [
+        "VectorStoreManager is a Spring @Service wrapping Spring AI's VectorStore.",
+        "application.yml is configured with the vector store properties.",
+        "The manager provides a method to initialize the store."
+      ]
+    },
+    {
+      "id": "F005.2",
+      "name": "Document Ingestion & Search",
+      "status": "pending",
+      "description": "Implement methods in VectorStoreManager to add documents (with embeddings) and perform semantic similarity searches. Create a simple REST endpoint to ingest test documents.",
+      "acceptance": [
+        "VectorStoreManager has an ingest method that converts text to Documents and adds them.",
+        "VectorStoreManager has a search method that takes a query and returns similar Documents.",
+        "A POST /api/agent/knowledge endpoint is created to trigger ingestion."
+      ]
+    },
+    {
+      "id": "F005.3",
+      "name": "RAG Context Injection",
+      "status": "pending",
+      "description": "Integrate VectorStoreManager into the ReAct loop. Before calling the LLM, perform a semantic search based on the user prompt and inject the retrieved documents into the system prompt or context.",
+      "acceptance": [
+        "AgentOrchestrator queries VectorStoreManager before executing the agent.",
+        "Retrieved documents are formatted and appended to the AgentContext or System Prompt.",
+        "End-to-end test: The agent answers questions using the ingested knowledge base."
+      ]
+    },
+    {
+      "id": "F006.1",
+      "name": "Guardrail Exceptions & Base Interface",
+      "status": "pending",
+      "description": "Create the foundation for security guardrails. Define a GuardrailViolationException in the exception package. Create a base Guardrail interface in the guardrails package with a validate method.",
+      "acceptance": [
+        "GuardrailViolationException extends RuntimeException and includes a clear message.",
+        "A base Guardrail interface is defined with a void validate(String content) method.",
+        "Classes are located in their respective packages."
+      ]
+    },
+    {
+      "id": "F006.2",
+      "name": "InputGuardrail (Prompt Injection)",
+      "status": "pending",
+      "description": "Implement InputGuardrail to check user prompts for basic prompt injection patterns and PII. Use regex or simple heuristic checks to block known malicious patterns (e.g., 'ignore previous instructions').",
+      "acceptance": [
+        "InputGuardrail implements the Guardrail interface.",
+        "It scans the input string for a predefined list of injection keywords/patterns.",
+        "It throws GuardrailViolationException if a pattern is matched.",
+        "Unit tests verify both safe and malicious inputs are handled correctly."
+      ]
+    },
+    {
+      "id": "F006.3",
+      "name": "OutputGuardrail (PII Filtering)",
+      "status": "pending",
+      "description": "Implement OutputGuardrail to scan the LLM's final text response for PII (e.g., email addresses, phone numbers, SSNs). Use regex to detect and mask or block PII before returning to the client.",
+      "acceptance": [
+        "OutputGuardrail implements the Guardrail interface.",
+        "It uses regex to identify emails, phone numbers, and credit cards in the text.",
+        "It either masks the PII (e.g., with asterisks) or throws GuardrailViolationException.",
+        "Unit tests verify PII is correctly detected and handled."
+      ]
+    },
+    {
+      "id": "F006.4",
+      "name": "ToolExecutionGuardrail",
+      "status": "pending",
+      "description": "Implement ToolExecutionGuardrail to validate tool arguments before execution. Check for path traversal (../), command injection (;, |), or unauthorized resource access in tool parameters.",
+      "acceptance": [
+        "ToolExecutionGuardrail validates tool arguments (String or JSON).",
+        "It blocks path traversal and basic shell injection characters.",
+        "It throws GuardrailViolationException if dangerous arguments are detected.",
+        "It is integrated into the ReAct loop right before the tool is invoked."
+      ]
+    },
+    {
+      "id": "F006.5",
+      "name": "Integrate Guardrails into API and Tools",
+      "status": "pending",
+      "description": "Wire all guardrails into the application flow. Apply InputGuardrail in the REST controllers before calling the orchestrator. Apply OutputGuardrail before returning the response. Apply ToolExecutionGuardrail in the ReAct loop.",
+      "acceptance": [
+        "AgentController and AgentStreamingController invoke InputGuardrail on ChatRequest.",
+        "ReActAgent invokes ToolExecutionGuardrail before executing any tool.",
+        "The controllers invoke OutputGuardrail on the final ExecutionResult.",
+        "GuardrailViolationException is caught by GlobalExceptionHandler and returns 400/403."
+      ]
+    },
+    {
+      "id": "F007.1",
+      "name": "Structured JSON Logging & MDC",
+      "status": "pending",
+      "description": "Configure logback-spring.xml for JSON structured logging. Update AgentOrchestrator to inject traceId and sessionId into SLF4J MDC (Mapped Diagnostic Context) at the start of the request and clear it at the end.",
+      "acceptance": [
+        "logback-spring.xml uses logstash-logback-encoder for JSON output.",
+        "AgentOrchestrator puts traceId and sessionId into MDC.",
+        "MDC is cleared in a finally block to prevent thread-local leaks.",
+        "Console output shows valid JSON logs containing the traceId."
+      ]
+    },
+    {
+      "id": "F007.2",
+      "name": "AgentMetrics (Micrometer)",
+      "status": "pending",
+      "description": "Create AgentMetrics in the observability package using Micrometer. Expose counters and timers for: total LLM calls, prompt tokens, completion tokens, and LLM latency.",
+      "acceptance": [
+        "AgentMetrics is a Spring @Component injecting a MeterRegistry.",
+        "It provides methods to record LLM call duration and token usage.",
+        "Metrics are exposed via the Spring Boot Actuator /actuator/metrics endpoint.",
+        "ReActAgent calls AgentMetrics after every LLM interaction."
+      ]
+    },
+    {
+      "id": "F007.3",
+      "name": "ToolTracingAspect (AOP)",
+      "status": "pending",
+      "description": "Implement ToolTracingAspect in the observability package using Spring AOP. Create an @Around aspect that intercepts all methods annotated with @Tool to log start time, end time, duration, and errors.",
+      "acceptance": [
+        "ToolTracingAspect is annotated with @Aspect and @Component.",
+        "The pointcut targets methods annotated with Spring AI's @Tool.",
+        "It logs the tool name, arguments, execution time, and success/failure.",
+        "It records tool execution metrics via AgentMetrics."
+      ]
+    },
+    {
+      "id": "F007.4",
+      "name": "LlmCallbackHandler",
+      "status": "pending",
+      "description": "Implement LlmCallbackHandler to intercept Spring AI ChatClient calls. Use Spring AI's advisors or callbacks to log the raw request (prompt) and response (completion) for debugging and auditing.",
+      "acceptance": [
+        "LlmCallbackHandler implements Spring AI's RequestResponseCallback or Advisor.",
+        "It logs the raw prompt sent to the LLM (sanitized if necessary).",
+        "It logs the raw completion received from the LLM.",
+        "It is registered in the ChatClient configuration."
+      ]
+    },
+    {
+      "id": "F008.1",
+      "name": "PromptTemplateRegistry",
+      "status": "pending",
+      "description": "Implement PromptTemplateRegistry in the prompts package to load externalized prompt templates. Configure it to read .st (StringTemplate) or .txt files from src/main/resources/prompts/ at startup.",
+      "acceptance": [
+        "PromptTemplateRegistry is a Spring @Component.",
+        "It scans and loads all files from the resources/prompts directory.",
+        "It caches the templates in memory for fast retrieval.",
+        "It provides a method to get a template by its filename/key."
+      ]
+    },
+    {
+      "id": "F008.2",
+      "name": "SystemPromptBuilder",
+      "status": "pending",
+      "description": "Implement SystemPromptBuilder to dynamically construct the final system prompt. It should take the base template from PromptTemplateRegistry and inject variables like available tools, current date, and RAG context.",
+      "acceptance": [
+        "SystemPromptBuilder is a Spring @Service.",
+        "It uses StringTemplate (or equivalent) to render the prompt.",
+        "It injects dynamic variables (tools list, context) into the template.",
+        "The react_system_prompt.st file is created in resources/prompts/."
+      ]
+    },
+    {
+      "id": "F008.3",
+      "name": "Refactor ReActAgent to use Externalized Prompts",
+      "status": "pending",
+      "description": "Remove all hardcoded prompt strings from ReActAgent.java. Inject SystemPromptBuilder and use it to generate the system prompt dynamically at the start of every execution.",
+      "acceptance": [
+        "ReActAgent no longer contains hardcoded system prompt strings.",
+        "It calls SystemPromptBuilder to get the system prompt before calling the LLM.",
+        "Changing the .st file in resources updates the agent's behavior without code changes.",
+        "End-to-end test: The agent still functions correctly with the externalized prompt."
+      ]
+    }
+  ]
+}

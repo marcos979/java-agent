@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.mfe.java_agent.JavaAgentApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.449 s -- in com.mfe.java_agent.JavaAgentApplicationTests
