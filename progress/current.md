@@ -1,6 +1,6 @@
 # Current
 
-Última actualización: (el implementer escribe esto)
+Última actualización: 2026-06-30 18:10 UTC-3
 
 | Campo | Valor |
 |---|---|
@@ -9,8 +9,6 @@
 | Estado | idle |
 
 ## Plan detallado
-
-(3-5 bullets que el implementer define antes de empezar)
 
 -
 

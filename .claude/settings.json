@@ -9,7 +9,19 @@
       "Bash(curl -s \"https://repo1.maven.org/maven2/org/springframework/ai/\")",
       "Bash(curl -sI \"https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-aop/4.1.0/spring-boot-starter-aop-4.1.0.pom\")",
       "Bash(./mvnw compile *)",
-      "Bash(./mvnw test *)"
+      "Bash(./mvnw test *)",
+      "Bash(find /home/marcos/.m2/repository/org/springframework/ai/spring-ai-client-chat -name \"*.jar\" 2>/dev/null | head -5)",
+      "Read(//home/marcos/.m2/repository/org/springframework/ai/spring-ai-client-chat/**)",
+      "Bash(find /home/marcos/.m2/repository/org/springframework/ai/spring-ai-model -name \"*.jar\" 2>/dev/null | head -5)",
+      "Read(//home/marcos/.m2/repository/org/springframework/ai/spring-ai-model/**)",
+      "Bash(jar tf *)",
+      "Read(//tmp/**)",
+      "Bash(jar xf *)",
+      "Bash(javap -p /tmp/org/springframework/ai/chat/messages/Message.class)",
+      "Bash(javap -p /tmp/org/springframework/ai/content/Content.class)",
+      "Bash(javap -verbose /tmp/org/springframework/ai/chat/messages/Message.class)",
+      "Bash(./mvnw dependency:tree -Dincludes=org.junit.jupiter -q)",
+      "Bash(./mvnw dependency:tree -Dscope=test)"
     ]
   },
   "hooks": {
