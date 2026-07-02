@@ -3,7 +3,7 @@
     {
       "id": "F001.1",
       "name": "Domain Models for Agent State",
-      "status": "pending",
+      "status": "done",
       "description": "Create the foundational data structures to hold the state of a single agent execution. Create AgentContext (traceId, sessionId, messageHistory, toolCalls) and ExecutionResult (success, finalAnswer, errorCause) in the agent.state package.",
       "acceptance": [
         "AgentContext class exists with required fields and standard getters/setters.",
